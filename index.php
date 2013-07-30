@@ -41,7 +41,7 @@ $password="password"; // Mysql password
 $db_name = "fb_amit";
 
 mysql_connect("$host", "$username", "$password")or die("cannot connect");
-mysql_select_db("$db_name")or die("cannot select DB");
+$db_handle = mysql_select_db("$db_name");
 
 //database essentials done
 
@@ -54,12 +54,9 @@ function set($data,$key)
 		return NULL;
 
 }
-
-$social_data = array();
 $keywords = array('coca-cola');
 
 foreach( $keywords as $key){
-	$social_data[$key]=array();
 	$link = "/search?q=$key&type=post";
 	for($i=0;$i<2;$i++)
 	{
@@ -73,31 +70,41 @@ foreach( $keywords as $key){
 			{		
 				if (!strcmp($number,'previous')){ break;}
 				//print_r("here");
-				$social_data[$key][$j] = array();
-				$social_data[$key][$j]['id']=$main_data['id'];
-				$social_data[$key][$j]['from']=$main_data['from'];
-				$social_data[$key][$j]['message']=$main_data['message'];
-				$social_data[$key][$j]['type']=$main_data['type'];
-				$social_data[$key][$j]['created_time']=$main_data['created_time'];
-				$social_data[$key][$j]['updated_time']=$main_data['updated_time'];
-				$social_data[$key][$j]['link']=set($main_data,'link');
-				$social_data[$key][$j]['name']=set($main_data,'name');
-				$social_data[$key][$j]['description']=set($main_data,'description');
-				$social_data[$key][$j]['picture']=set($main_data,'picture');
-				$social_data[$key][$j]['caption']=set($main_data,'caption');
-				$social_data[$key][$j]['properties']=set($main_data,'properties');
+				$id = $main_data['id'];
+				$id_name = $main_data['from']['id'];
+				$name = $main_data['from']['name'];
+				$temp = set($main_data['from'],'category');
+				if($temp!=NULL)
+					$category = $temp;
+				else
+					$category = "USER";
+				$message = $main_data['message'];
+				$type =$main_data['type'];
+				$created_time =$main_data['created_time'];
+				$updated_time =$main_data['updated_time'];
+				$link =set($main_data,'link');
+				$name_link =set($main_data,'name');
+				$description_link =set($main_data,'description');
+				$picture_link =set($main_data,'picture');
+				$caption_link =set($main_data,'caption');
 				$temp = set($main_data,'shares');
 				if ($temp!=NULL)
-					$social_data[$key][$j]['shares']=$temp["count"];
+					$num_shares =$temp["count"];
 				else
-					$social_data[$key][$j]['shares']=0;
+					$num_shares =0;
 					
 				$temp = set($main_data,'likes');
 				if ($temp!=NULL)
-					$social_data[$key][$j]['likes'] = count($temp["data"]);
+					$num_likes = count($temp["data"]);
 				else
-					$social_data[$key][$j]['likes'] = 0;
+					$num_likes = 0;
 				//comments paging
+				//---adding contents to table "data"---------------
+			echo	$sql = 'INSERT INTO data (id_posts,keyword,name,id_name,message,type,link,name_link,caption_link,description_link,picture_link,num_shares,num_likes,category) VALUES("$id","$key","$name","$id_name","$message","$type","$link","$name_link","$caption_link","$description_link","$picture_link",$num_shares,$num_likes,"$category")';
+				exit;
+				$result = mysql_query($sql);
+				print_r($result);
+				
 				$temp = set($main_data,'comments');
 				if ($temp!=NULL)
 				{
@@ -114,7 +121,7 @@ foreach( $keywords as $key){
 					
 					
 				}
-				
+				//somments paging done
 				$j++;
 			}
 		}
@@ -124,9 +131,11 @@ foreach( $keywords as $key){
 		//print_r($link);
 	}
 }
-echo "<pre>";
+//mysql_close($db_handle);
+/*echo "<pre>";
 print_r($comments);
 echo "</pre>";
+*/
 
 //--------------------------------ends here---------------------------
 ?>
