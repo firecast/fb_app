@@ -80,8 +80,8 @@ foreach( $keywords as $key){
 					$category = "USER";
 				$message = $main_data['message'];
 				$type =$main_data['type'];
-				$created_time =$main_data['created_time'];
-				$updated_time =$main_data['updated_time'];
+				$temp =$main_data['created_time'];
+				$created_time = substr($temp,0,10)." ".substr($temp,11,8);
 				$link =set($main_data,'link');
 				$name_link =set($main_data,'name');
 				$description_link =set($main_data,'description');
@@ -100,15 +100,14 @@ foreach( $keywords as $key){
 					$num_likes = 0;
 				//comments paging
 				//---adding contents to table "data"---------------
-			echo	$sql = 'INSERT INTO data (id_posts,keyword,name,id_name,message,type,link,name_link,caption_link,description_link,picture_link,num_shares,num_likes,category) VALUES("$id","$key","$name","$id_name","$message","$type","$link","$name_link","$caption_link","$description_link","$picture_link",$num_shares,$num_likes,"$category")';
-				exit;
+				$sql = "INSERT INTO data (id_posts,keyword,name,id_name,message,type,link,name_link,caption_link,description_link,picture_link,num_shares,num_likes,category,created_time) VALUES(\"$id\",\"$key\",\"$name\",\"$id_name\",\"$message\",\"$type\",\"$link\",\"$name_link\",\"$caption_link\",\"$description_link\",\"$picture_link\",$num_shares,$num_likes,\"$category\",\"$created_time\")";
+			
 				$result = mysql_query($sql);
-				print_r($result);
+				//print_r($result);
 				
 				$temp = set($main_data,'comments');
 				if ($temp!=NULL)
 				{
-					$id = $main_data['id'];
 					$temp2 = "https://graph.facebook.com/$id/comments";
 					do{
 					$data3 = array();
@@ -116,6 +115,18 @@ foreach( $keywords as $key){
 					$link2 = substr($temp2,$index2,1000);
 					$data3 = $facebook->api($link2);
 					$comments[$id] = $data3["data"];
+					foreach ($data3['data'] as $number=>$value)
+					{
+						$id_comments = $value['id'];
+						$name = $value['from']['name'];
+						$id_name = $value['from']['id'];
+						$message = $value['message'];
+						$temp =$value['created_time'];
+						$created_time = substr($temp,0,10)." ".substr($temp,11,8);
+						$like_count = $value['like_count'];
+						$sql = "INSERT INTO comments (id_posts,id_comments,keyword,name,id_name,message,created_time,like_count) VALUES(\"$id\",\"$id_comments\",\"$key\",\"$name\",\"$id_name\",\"$message\",\"$created_time\",$like_count)";
+						$result = mysql_query($sql);
+					}
 					$temp2 = set($data3,'next');
 					}while($temp2 != null);
 					
@@ -132,10 +143,10 @@ foreach( $keywords as $key){
 	}
 }
 //mysql_close($db_handle);
-/*echo "<pre>";
+echo "<pre>";
 print_r($comments);
 echo "</pre>";
-*/
+
 
 //--------------------------------ends here---------------------------
 ?>
